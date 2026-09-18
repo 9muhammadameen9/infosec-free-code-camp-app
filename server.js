@@ -34,13 +34,20 @@ app.get("/file/*?", function (req, res, next) {
 var main = require("./myApp.js").default;
 app.get("/app-info", function (req, res) {
   // list middlewares mounted on the '/' camper's app
-  var appMainRouteStack = main._router.stack
-    .filter((s) => s.path === "")
-    .map((l) => l.name)
-    // filter out express default middlewares
-    .filter(
-      (n) => !(n === "query" || n === "expressInit" || n === "serveStatic")
-    );
+  var appMainRouteStack = [];
+  try {
+    var router = main._router || (main.router) || null;
+    if (router && Array.isArray(router.stack)) {
+      appMainRouteStack = router.stack
+        .filter((s) => s.path === "")
+        .map((l) => l.name)
+        .filter(
+          (n) => !(n === "query" || n === "expressInit" || n === "serveStatic")
+        );
+    }
+  } catch (e) {
+    appMainRouteStack = ["error: " + e.message];
+  }
 
   // filter out CORS Headers
   var hs = Object.keys(res.getHeaders()).filter(
